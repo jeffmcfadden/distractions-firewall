@@ -7,7 +7,7 @@
 run=/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper
 
 $run begin
-$run set firewall name ETH1_IN rule 2 disable
+$run set firewall name FIREWALL_POLICY_NAME rule FIREWALL_RULE_NUMBER disable
 $run commit
 $run save
 $run end

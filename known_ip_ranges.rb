@@ -1,5 +1,8 @@
 KNOWN_IP_RANGES = {
-  snapchat: ["104.244.42.0/24"],
+  
+  feedwrangler: [
+    "23.92.23.147"
+  ],
   
   instagram: [
     "34.206.14.210",
