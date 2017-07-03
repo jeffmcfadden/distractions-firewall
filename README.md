@@ -3,18 +3,23 @@ Firewall scripts, configurations, and rules for blocking unwanted sites and serv
 
 ## Installation
 
-**Incomplete**
-
-    bundle install
+    # Setup Your Edgerouter Lite with the necessary settings. [Details still to come.]
+    
+    $ git clone https://github.com/jeffmcfadden/distractions-firewall.git
+    $ cd distractions-firewall
+    $ bundle install
+    $ cp config.example.yml my-config.yml
+    
+    # Edit my-config.yml
     
     # Install the firewall rules
-    bundle exec firewall -c my-config.yml install
+    $ bundle exec firewall -c my-config.yml install
     
     # Now turn it on
-    bundle exec firewall -c my-config.yml on
+    $ bundle exec firewall -c my-config.yml on
     
     # Now turn it off
-    bundle exec firewall -c my-config.yml off
+    $ bundle exec firewall -c my-config.yml off
 
 ## Misc Notes
 
