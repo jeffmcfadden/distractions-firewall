@@ -1,4 +1,4 @@
-require 'tty-command'
+require 'tty'
 require './known_ip_ranges.rb'
 require './service_groups.rb'
 
