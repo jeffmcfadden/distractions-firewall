@@ -15,115 +15,119 @@ tty = TTY::Command.new
 
 ## REMOVE OLD RULES FIRST ##
 
-# show_group_cmd = "ssh #{SSH_USER}@#{ROUTER_IP_ADDRESS} -i #{SSH_KEYFILE} \"/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper show firewall group address-group #{DISTRACTION_ADDRESS_GROUP_NAME}\" | grep address"
-#
-# out, err = tty.run(show_group_cmd)
-#
-# puts "Out: #{out}"
-# puts "Err: #{err}"
-#
-# remove_rules = out.split( "\n" ).collect{ |line| line.gsub( "address", "$run delete firewall group address-group #{DISTRACTION_ADDRESS_GROUP_NAME} address" ).strip }
-#
-# uninstall_script = File.read( './uninstall_existing_rules_template.txt' )
-#
-# uninstall_script = uninstall_script.gsub( '### REMOVE_EXISTING_RULES ###', remove_rules.join( "\n" ) )
-#
-# puts "\n\n\n"
-# puts uninstall_script
-#
-# filename = "#{normalized_group_name}.sh"
-# remote_filename = "/config/scripts/#{filename}"
-#
-# puts "filename: #{filename}"
-# puts "remote_filename: #{remote_filename}"
-#
-# Dir.mktmpdir {|dir|
-#   local_filename = File.join( dir, filename )
-#   puts "local_filename: #{local_filename}"
-#
-#   File.open( local_filename, 'w' ){ |f| f.write(uninstall_script) }
-#
-#   puts "chmod"
-#   chmod_cmd = "chmod 755 #{local_filename}"
-#   puts "  #{chmod_cmd}"
-#   out, err = tty.run(chmod_cmd)
-#   puts "  out: #{out}"
-#   puts "  err: #{err}"
-#
-#   puts "scp"
-#   ssh_copy_cmd = "scp -i #{SSH_KEYFILE} #{local_filename} #{SSH_USER}@#{ROUTER_IP_ADDRESS}:#{remote_filename}"
-#   puts "  #{ssh_copy_cmd}"
-#   out, err = tty.run(ssh_copy_cmd)
-#   puts "  out: #{out}"
-#   puts "  err: #{err}"
-#
-#   puts "run"
-#   ssh_run_cmd = "ssh #{SSH_USER}@#{ROUTER_IP_ADDRESS} -i #{SSH_KEYFILE} \"#{remote_filename}\""
-#   puts "  #{ssh_run_cmd}"
-#   out, err = tty.run(ssh_run_cmd)
-#   puts "  out: #{out}"
-#   puts "  err: #{err}"
-# }
-#
-# ## NOW ADD NEW RULES ##
-#
-# addresses_to_block = []
-#
-# BLOCKS.each do |block|
-#   if !SERVICE_GROUPS[block].nil?
-#     addresses_to_block += SERVICE_GROUPS[block].collect{ |g| KNOWN_IP_RANGES[g] }
-#   elsif !KNOWN_IP_RANGES[block].nil?
-#     addresses_to_block += KNOWN_IP_RANGES[block]
-#   else
-#     puts "  Couldn't find anything with the name #{block} to load blocks."
-#   end
-# end
-#
-# addresses_to_block = addresses_to_block.flatten
-#
-# add_rules = addresses_to_block.collect{ |a| "$run set firewall group address-group #{DISTRACTION_ADDRESS_GROUP_NAME} address #{a}" }
-#
-# install_script = File.read( './install_rules_template.txt' )
-# install_script = install_script.gsub( '### INSTALL_RULES ###', add_rules.join( "\n" ) )
-#
-# puts "\n\n\n"
-# puts install_script
-#
-# install_filename = "#{normalized_group_name}_install.sh"
-# remote_install_filename = "/config/scripts/#{install_filename}"
-#
-# puts "install_filename: #{install_filename}"
-# puts "remote_install_filename: #{remote_install_filename}"
-#
-# Dir.mktmpdir {|dir|
-#   local_install_filename = File.join( dir, install_filename )
-#   puts "local_install_filename: #{local_install_filename}"
-#
-#   File.open( local_install_filename, 'w' ){ |f| f.write(install_script) }
-#
-#   puts "chmod"
-#   chmod_cmd = "chmod 755 #{local_install_filename}"
-#   puts "  #{chmod_cmd}"
-#   out, err = tty.run(chmod_cmd)
-#   puts "  out: #{out}"
-#   puts "  err: #{err}"
-#
-#   puts "scp"
-#   ssh_copy_cmd = "scp -i #{SSH_KEYFILE} #{local_install_filename} #{SSH_USER}@#{ROUTER_IP_ADDRESS}:#{remote_install_filename}"
-#   puts "  #{ssh_copy_cmd}"
-#   out, err = tty.run(ssh_copy_cmd)
-#   puts "  out: #{out}"
-#   puts "  err: #{err}"
-#
-#   puts "run"
-#   ssh_run_cmd = "ssh #{SSH_USER}@#{ROUTER_IP_ADDRESS} -i #{SSH_KEYFILE} \"#{remote_install_filename}\""
-#   puts "  #{ssh_run_cmd}"
-#   out, err = tty.run(ssh_run_cmd)
-#   puts "  out: #{out}"
-#   puts "  err: #{err}"
-# }
-#
-# puts "New group has been setup."
+show_group_cmd = "ssh #{SSH_USER}@#{ROUTER_IP_ADDRESS} -i #{SSH_KEYFILE} \"/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper show firewall group address-group #{DISTRACTION_ADDRESS_GROUP_NAME}\" | grep address"
+
+out, err = tty.run(show_group_cmd)
+
+puts "Out: #{out}"
+puts "Err: #{err}"
+
+remove_rules = out.split( "\n" ).collect{ |line| line.gsub( "address", "$run delete firewall group address-group #{DISTRACTION_ADDRESS_GROUP_NAME} address" ).strip }
+
+uninstall_script = File.read( './uninstall_existing_rules_template.txt' )
+
+uninstall_script = uninstall_script.gsub( '### REMOVE_EXISTING_RULES ###', remove_rules.join( "\n" ) )
+
+puts "\n\n\n"
+puts uninstall_script
+
+filename = "#{normalized_group_name}.sh"
+remote_filename = "/config/scripts/#{filename}"
+
+puts "filename: #{filename}"
+puts "remote_filename: #{remote_filename}"
+
+Dir.mktmpdir {|dir|
+  local_filename = File.join( dir, filename )
+  puts "local_filename: #{local_filename}"
+
+  File.open( local_filename, 'w' ){ |f| f.write(uninstall_script) }
+
+  puts "chmod"
+  chmod_cmd = "chmod 755 #{local_filename}"
+  puts "  #{chmod_cmd}"
+  out, err = tty.run(chmod_cmd)
+  puts "  out: #{out}"
+  puts "  err: #{err}"
+
+  puts "scp"
+  ssh_copy_cmd = "scp -i #{SSH_KEYFILE} #{local_filename} #{SSH_USER}@#{ROUTER_IP_ADDRESS}:#{remote_filename}"
+  puts "  #{ssh_copy_cmd}"
+  out, err = tty.run(ssh_copy_cmd)
+  puts "  out: #{out}"
+  puts "  err: #{err}"
+
+  puts "run"
+  ssh_run_cmd = "ssh #{SSH_USER}@#{ROUTER_IP_ADDRESS} -i #{SSH_KEYFILE} \"#{remote_filename}\""
+  puts "  #{ssh_run_cmd}"
+  out, err = tty.run(ssh_run_cmd)
+  puts "  out: #{out}"
+  puts "  err: #{err}"
+}
+
+## NOW ADD NEW RULES ##
+
+addresses_to_block = []
+
+BLOCKS.each do |block|
+  if !SERVICE_GROUPS[block].nil?
+    addresses_to_block += SERVICE_GROUPS[block].collect{ |g| KNOWN_IP_RANGES[g] }
+  elsif !KNOWN_IP_RANGES[block].nil?
+    addresses_to_block += KNOWN_IP_RANGES[block]
+  else
+    puts "  Couldn't find anything with the name #{block} to load blocks."
+  end
+end
+
+if !ADDITIONAL_BLOCKS.nil?
+  addresses_to_block += ADDITIONAL_BLOCKS
+end
+
+addresses_to_block = addresses_to_block.flatten
+
+add_rules = addresses_to_block.collect{ |a| "$run set firewall group address-group #{DISTRACTION_ADDRESS_GROUP_NAME} address #{a}" }
+
+install_script = File.read( './install_rules_template.txt' )
+install_script = install_script.gsub( '### INSTALL_RULES ###', add_rules.join( "\n" ) )
+
+puts "\n\n\n"
+puts install_script
+
+install_filename = "#{normalized_group_name}_install.sh"
+remote_install_filename = "/config/scripts/#{install_filename}"
+
+puts "install_filename: #{install_filename}"
+puts "remote_install_filename: #{remote_install_filename}"
+
+Dir.mktmpdir {|dir|
+  local_install_filename = File.join( dir, install_filename )
+  puts "local_install_filename: #{local_install_filename}"
+
+  File.open( local_install_filename, 'w' ){ |f| f.write(install_script) }
+
+  puts "chmod"
+  chmod_cmd = "chmod 755 #{local_install_filename}"
+  puts "  #{chmod_cmd}"
+  out, err = tty.run(chmod_cmd)
+  puts "  out: #{out}"
+  puts "  err: #{err}"
+
+  puts "scp"
+  ssh_copy_cmd = "scp -i #{SSH_KEYFILE} #{local_install_filename} #{SSH_USER}@#{ROUTER_IP_ADDRESS}:#{remote_install_filename}"
+  puts "  #{ssh_copy_cmd}"
+  out, err = tty.run(ssh_copy_cmd)
+  puts "  out: #{out}"
+  puts "  err: #{err}"
+
+  puts "run"
+  ssh_run_cmd = "ssh #{SSH_USER}@#{ROUTER_IP_ADDRESS} -i #{SSH_KEYFILE} \"#{remote_install_filename}\""
+  puts "  #{ssh_run_cmd}"
+  out, err = tty.run(ssh_run_cmd)
+  puts "  out: #{out}"
+  puts "  err: #{err}"
+}
+
+puts "New group has been setup."
 
 
 
