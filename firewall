@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+
+require 'tty'
+require 'optparse'
+require 'yaml'
+require './firewall.rb'
+
+options = {}
+OptionParser.new do |opts|
+  opts.banner = "Usage: firewall -c [config_file] [options] <command>"
+
+  opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
+    options[:verbose] = v
+  end
+  
+  opts.on("-c", "--config CONFIG_FILE", "Please specify a config file: -c CONFIG_FILE") do |config_file|
+    options[:config_file] = config_file
+  end
+end.parse!
+
+# p options
+
+command = ARGV.pop
+
+pastel = Pastel.new
+
+if command.nil?
+  puts pastel.red "Error: You must specify a firewall command (install, uninstall, off, on)"
+  exit
+else
+  config = YAML.load_file( options[:config_file] )
+  
+  firewall = Firewall.new( config )
+  
+  if command.downcase == "on"
+    firewall.turn_on
+  elsif command.downcase == "off"
+    firewall.turn_off
+  else
+    puts pastel.yellow "Unknown command: #{command}"
+  end
+  
+end
