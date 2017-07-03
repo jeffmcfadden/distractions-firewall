@@ -6,13 +6,15 @@ Firewall scripts, configurations, and rules for blocking unwanted sites and serv
 **Incomplete**
 
     bundle install
-    bundle exec install_rules_to_erl.rb my-config.rb
+    
+    # Install the firewall rules
+    bundle exec firewall -c my-config.yml install
     
     # Now turn it on
-    bundle exec turn_firewall_on.rb my-config.rb
+    bundle exec firewall -c my-config.yml on
     
     # Now turn it off
-    bundle exec turn_firewall_off.rb my-config.rb    
+    bundle exec firewall -c my-config.yml off
 
 ## Misc Notes
 
