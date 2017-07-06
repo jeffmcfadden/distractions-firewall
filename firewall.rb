@@ -33,13 +33,21 @@ class Firewall
   end
   
   def uninstall_existing_address_groups
+    check_for_groups_cmd = "ssh #{options[:ssh_user]}@#{options[:router_ip_address]} -i #{options[:ssh_keyfile]} \"/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper show firewall group address-group #{options[:distraction_address_group_name]}\""
+    result = run_command( check_for_groups_cmd, "Check for existing address group addresses" )
+    
+    if result.success? && result.out.gsub( 'description ""', '' ).strip == ''
+      puts self.pastel.yellow "  No existing address groups, so we don't need to remove any."
+      return
+    end
+    
     show_group_cmd = "ssh #{options[:ssh_user]}@#{options[:router_ip_address]} -i #{options[:ssh_keyfile]} \"/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper show firewall group address-group #{options[:distraction_address_group_name]}\" | grep address"
 
-    self.run_command( cmd, "Fetching existing address group addresses" )
-
+    result = run_command( show_group_cmd, "Fetching existing address group addresses" )
+    
     print pastel.white "Creating address group uninstall script..."
 
-    remove_rules = out.split( "\n" ).collect{ |line| line.gsub( "address", "$run delete firewall group address-group #{options[:distraction_address_group_name]} address" ).strip }
+    remove_rules = result.out.split( "\n" ).collect{ |line| line.gsub( "address", "$run delete firewall group address-group #{options[:distraction_address_group_name]} address" ).strip }
     uninstall_script = File.read( './uninstall_existing_rules_template.txt' )
     uninstall_script = uninstall_script.gsub( '### REMOVE_EXISTING_RULES ###', remove_rules.join( "\n" ) )
 
@@ -57,13 +65,13 @@ class Firewall
       print pastel.green( " [SUCCESS]\n" )
 
       chmod_cmd = "chmod 755 #{local_filename}"
-      self.run_command( chmod_cmd, "Marking address group uninstall script executable" )
+      run_command( chmod_cmd, "Marking address group uninstall script executable" )
 
       ssh_copy_cmd = "scp -i #{options[:ssh_keyfile]} #{local_filename} #{options[:ssh_user]}@#{options[:router_ip_address]}:#{remote_filename}"
-      self.run_command( ssh_copy_cmd, "Copying address group uninstall script to router" )
+      run_command( ssh_copy_cmd, "Copying address group uninstall script to router" )
 
       ssh_run_cmd = "ssh #{options[:ssh_user]}@#{options[:router_ip_address]} -i #{options[:ssh_keyfile]} \"#{remote_filename}\""
-      self.run_command( ssh_run_cmd, "Removing existing address groups on router" )
+      run_command( ssh_run_cmd, "Removing existing address groups on router" )
     }
   end
   
@@ -73,10 +81,10 @@ class Firewall
     addresses_to_block = []
 
     options[:blocks].each do |block|
-      if !options[:service_groups][block].nil?
-        addresses_to_block += options[:service_groups][block].collect{ |g| options[:known_ip_ranges][g] }
-      elsif !options[:known_ip_ranges][block].nil?
-        addresses_to_block += options[:known_ip_ranges][block]
+      if !SERVICE_GROUPS[block].nil?
+        addresses_to_block += SERVICE_GROUPS[block].collect{ |g| KNOWN_IP_RANGES[g] }
+      elsif !KNOWN_IP_RANGES[block].nil?
+        addresses_to_block += KNOWN_IP_RANGES[block]
       else
         puts pastel.yellow "  Couldn't find anything with the name #{block} to load blocks."
       end
@@ -111,13 +119,13 @@ class Firewall
       print pastel.green( " [SUCCESS]\n" )
 
       chmod_cmd = "chmod 755 #{local_install_filename}"
-      self.run_command( chmod_cmd, "Marking address group install script executable" )
+      run_command( chmod_cmd, "Marking address group install script executable" )
 
       ssh_copy_cmd = "scp -i #{options[:ssh_keyfile]} #{local_install_filename} #{options[:ssh_user]}@#{options[:router_ip_address]}:#{remote_install_filename}"
-      self.run_command( ssh_copy_cmd, "Copying address group install script to router" )
+      run_command( ssh_copy_cmd, "Copying address group install script to router" )
 
       ssh_run_cmd = "ssh #{options[:ssh_user]}@#{options[:router_ip_address]} -i #{options[:ssh_keyfile]} \"#{remote_install_filename}\""
-      self.run_command( ssh_run_cmd, "Installing new address groups on router" )
+      run_command( ssh_run_cmd, "Installing new address groups on router" )
     }
   end
   
@@ -136,13 +144,11 @@ class Firewall
       File.open( local_on_filename, 'w' ){ |f| f.write(firewall_on_script) }
       print pastel.green( " [SUCCESS]\n" )
 
-      puts "chmod"
       chmod_cmd = "chmod 755 #{local_on_filename}"
-      self.run_command( chmod_cmd, "Marking firewall on script executable" )
+      run_command( chmod_cmd, "Marking firewall on script executable" )
 
-      puts "scp"
       ssh_copy_cmd = "scp -i #{options[:ssh_keyfile]} #{local_on_filename} #{options[:ssh_user]}@#{options[:router_ip_address]}:#{remote_on_filename}"
-      self.run_command( ssh_copy_cmd, "Installing firewall on script on router" )
+      run_command( ssh_copy_cmd, "Installing firewall on script on router" )
     }
   end
   
@@ -161,13 +167,11 @@ class Firewall
       File.open( local_off_filename, 'w' ){ |f| f.write(firewall_off_script) }
       print pastel.green( " [SUCCESS]\n" )
 
-      puts "chmod"
       chmod_cmd = "chmod 755 #{local_off_filename}"
-      self.run_command( chmod_cmd, "Marking firewall off script executable" )
+      run_command( chmod_cmd, "Marking firewall off script executable" )
 
-      puts "scp"
       ssh_copy_cmd = "scp -i #{options[:ssh_keyfile]} #{local_off_filename} #{options[:ssh_user]}@#{options[:router_ip_address]}:#{remote_off_filename}"
-      self.run_command( ssh_copy_cmd, "Installing firewall off script on router" )
+      run_command( ssh_copy_cmd, "Installing firewall off script on router" )
     }
   end
 
@@ -203,7 +207,7 @@ class Firewall
       puts pastel.red  "  err: #{result.err}"
     end
 
-    result.success?
+    result
   end
   
   def normalized_group_name

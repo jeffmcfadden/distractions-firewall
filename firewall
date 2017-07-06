@@ -36,6 +36,8 @@ else
     firewall.turn_on
   elsif command.downcase == "off"
     firewall.turn_off
+  elsif command.downcase == "install"
+    firewall.install
   else
     puts pastel.yellow "Unknown command: #{command}"
   end
